@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: taskapp
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: .
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: taskapp
+      DB_USER: admin
+      DB_PASSWORD: password123
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: https://github.com/daniahamed/First-Frontend-Task.git
+    ports:
+      - "3001:3001"
+    environment:
+      REACT_APP_API_URL: http://backend:3002
+    depends_on:
+      - backend
+
+

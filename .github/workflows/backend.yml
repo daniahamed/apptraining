@@ -8,44 +8,46 @@ jobs:
   compose:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout backend repo
         uses: actions/checkout@v4
 
-      - name: Build and run services
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🔹 Build & push BACKEND image (Dockerfile is in repo root)
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-backend:latest
+
+      # 🔹 Build & push FRONTEND image (remote repo)
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: https://github.com/daniahamed/apptrainning-frontend.git
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-frontend:latest
+
+      # 🔹 Run compose using registry images
+      - name: Run services with docker compose
         run: |
-          docker compose build
+          docker compose pull
           docker compose up -d
 
       - name: Show running containers
         run: docker ps
 
-
-
-# name: Backend CI/CD
-
-# on:
-#   push:
-#     branches:
-#       - main
-
-# jobs:
-#   build-and-push:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-
-#       - name: Login to Docker Hub
-#         uses: docker/login-action@v3
-#         with:
-#           username: ${{ secrets.DOCKERHUB_USERNAME }}
-#           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-#       - name: Build and push backend image
-#         uses: docker/build-push-action@v5
-#         with:
-#           context: .
-#           push: true
-#           tags: daniahamed/apptraining-backend:latest

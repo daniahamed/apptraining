@@ -11,7 +11,7 @@ services:
       - "5432:5432"
 
   backend:
-    build: .
+    image: ghcr.io/daniahamed/apptraining-backend:latest
     ports:
       - "3002:3002"
     environment:
@@ -25,8 +25,7 @@ services:
       - db
 
   frontend:
-    build:
-      context: https://github.com/daniahamed/apptrainning-frontend.git
+    image: ghcr.io/daniahamed/apptraining-frontend:latest
     ports:
       - "3001:3001"
     environment:
